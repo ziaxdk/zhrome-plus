@@ -1,49 +1,46 @@
-﻿var express = require('express'), 
-    http = require('http')
+﻿var express = require('express'),
+    http = require('http'),
+    cheerio = require('cheerio')
     ;
 
-
-//var parsers = [/<title>(.*?)</title>/i'];
-var parsers = [/<title>(.*?)<\/title>/i];
 
 var app = express();
 var theServer = http.createServer(app);
 app.use(express.bodyParser());
-app.post("/proxy", function(req, res){
-    var parseHtml = function(data){
-        var res = [];
-        
-
-        var p = parsers[0];
-        var m = p.exec(data);
-        if (m) res.push(m[1]);
-
-        return res;
+app.post("/proxy", function (req, res) {
+    var search = {};
+    var parseHtml = function (data) {
+        var dom = cheerio.load(data);
+        var title = dom('title').first().text();
+        var keywords = dom('meta[name="keywords"]').first().attr('content');
+        if (title)
+            search.title = title.trim();
+        if (keywords)
+            search.keywords = keywords.trim();
     };
 
 
-    http.get(req.body.uri, function(httpRes) {
+    http.get(req.body.uri,function (httpRes) {
         var bufs = [];
-        httpRes.on('data', function(data) { 
+        httpRes.on('data', function (data) {
             bufs.push(data);
         });
-        httpRes.on('end', function(data) { 
+        httpRes.on('end', function (data) {
             var total = Buffer.concat(bufs);
             var html = total.toString();
+            console.log(html);
 
-            var search = {
-                keywords: parseHtml(html)
-            };
+            parseHtml(html);
 
             console.log(search);
 
             res.setHeader("Content-Type", "application/json");
-            res.send(")]}',\n" + JSON.stringify(search)); 
+            res.send(")]}',\n" + JSON.stringify(search));
         });
 
-    }).on('error', function(e) {
-        console.log("Got error: " + e.message);
-    });
+    }).on('error', function (e) {
+            console.log("Got error: " + e.message);
+        });
 
 });
 

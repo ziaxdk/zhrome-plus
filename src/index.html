@@ -1,93 +1,88 @@
-
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="css/foundation.css">
     <script src="angular-1.15.js"></script>
     <script src="MongoResource.js"></script>
     <script>
 
 
-    var app = angular.module("TheApp", ['mongolabResourceHttp']);
+        var app = angular.module("TheApp", ['mongolabResourceHttp']);
 
-    app.constant('MONGOLAB_CONFIG',{API_KEY:'50f5584ae4b09b3cd11ec093', DB_NAME:'ziaxdeveloperplugin'});
+        app.constant('MONGOLAB_CONFIG', {API_KEY: '50f5584ae4b09b3cd11ec093', DB_NAME: 'ziaxdeveloperplugin'});
 
-    app.service("Settings", function(){
-        return {
-            db: { user: "user", pass: "pass", db: "db" }
-        };
-    });
+        app.service("Settings", function () {
+            return {
+                db: { user: "user", pass: "pass", db: "db" }
+            };
+        });
 
-    app.factory('Links', function ($mongolabResourceHttp) {
-        return $mongolabResourceHttp('links');
-    });
+        app.factory('Links', function ($mongolabResourceHttp) {
+            return $mongolabResourceHttp('links');
+        });
 
-    app.controller("NewLinkCtrl", function($http, $timeout, $q, Settings, Links) {
-        function delay(ms) {
-            var deferred = $q.defer();
-            $timeout(deferred.resolve, ms);
-            return deferred.promise;
-        }
-
-        this.new = function() {
+        app.controller("NewLinkCtrl", function ($http, $timeout, $q, Settings, Links) {
             var link = new Links();
-            link.name = "dummy";
-            link.link = "http://www.ziax.dk";
 
-            console.log("saving...", this.uri);
-            //link.$save(function() { console.log("ok", arguments); }, function() {  console.log("err", arguments); });
-        };
+            this.new = function () {
+                link.name = "dummy";
+                link.link = this.uri;
+                link.tags = this.tags;
 
-        var _prom;
-        this.change = function() {
+                console.log("saving...", link);
+                //link.$save(function() { console.log("ok", arguments); }, function() {  console.log("err", arguments); });
+            };
+
+            var _prom;
+            this.change = function () {
                 var _this = this;
 
                 if (_prom) {
                     $timeout.cancel(_prom);
                 }
-                _prom = $timeout(function() {
+                _prom = $timeout(function () {
                     if (/(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?/.test(_this.uri)) {
-                        $http.post("proxy", {uri: _this.uri}, function(res){
+//                    if (/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?/.test(_this.uri)) {
+                        $http.post("proxy", {uri: _this.uri}).success(function (res) {
                             console.log(res);
+                            link.search = res;
                         });
                     }
                 }, 1000);
 
 
+            };
 
-            
-        };
+        });
 
-    });
-
-    app.controller("ListCtrl", function(Links, $http){
-        this.links = Links.all();
-
-        /*$http.post("proxy", { uri: "http://www.bt.dk" },function(res){
-
-                console.log(res);
-        });*/
-    });
+        app.controller("ListCtrl", function (Links, $http) {
+            this.links = Links.all();
+        });
 
     </script>
 </head>
 <body ng-app="TheApp">
 
-    <div ng-controller="ListCtrl as list">
+<div class="row">
+    <div ng-controller="ListCtrl as list" class="twelve columns">
         <ul>
             <li ng-repeat="l in list.links">
-                <a href="{{l.link}}" target="_blank">{{l.name}}</a>
+                <a href="{{l.link}}" target="_blank">{{l.link}}</a>
             </li>
         </ul>
 
     </div>
+</div>
 
 
-
+<div class="row">
     <div ng-controller="NewLinkCtrl as form">
         <form ng-submit="form.new()">
-            <input type="text" ng-model="form.uri" ng-change="form.change()" />
+            <input type="text" ng-model="form.uri" ng-change="form.change()" placeholder="http://....."/>
+            <input type="text" ng-model="form.tags" placeholder="Tags....."/>
             <button>new</button>
         </form>
     </div>
+</div>
 </body>
 </html>
