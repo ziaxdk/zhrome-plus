@@ -41,13 +41,14 @@
                     $timeout.cancel(_prom);
                 }
                 _prom = $timeout(function () {
-                    if (/(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?/.test(_this.uri)) {
+//                    if (/(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?/.test(_this.uri)) {
 //                    if (/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?/.test(_this.uri)) {
+                        console.log("proxy");
                         $http.post("proxy", {uri: _this.uri}).success(function (res) {
                             console.log(res);
                             link.search = res;
                         });
-                    }
+//                    }
                 }, 1000);
 
 
