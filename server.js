@@ -32,14 +32,33 @@ app.post("/proxy", function (appReq, appRes) {
         console.log('start parsing');
         var title = getElement('title', html);
         var keywords = getMetaKeywords(html);
+        var description = getMetaDescription(html);
 
         var obj = {
             title: title,
-            keywords: keywords
+            keywords: keywords,
+            description: description
         };
+        appRes.setHeader("Content-Type", "application/json;charset=UTF-8");
         appRes.send(")]}',\n" + JSON.stringify(obj));
     };
 
+    var getMetaDescription = function(html, start) {
+      var start = getStartElement('meta', html, start);
+      var end = getEndElement(start, html);
+      
+      //console.log('start', start, 'end', end);
+      //console.log(val);
+      if (start === -1 || end === -1) return;
+
+      var val = html.substring(start+7, end);
+      if (val.toLowerCase().indexOf('description') === -1) {
+        return getMetaDescription(html, end);
+      }
+      else {
+        return getAttributeValue('content', val);
+      }
+    };
 
     var getMetaKeywords = function(html, start) {
       var start = getStartElement('meta', html, start);
@@ -56,8 +75,6 @@ app.post("/proxy", function (appReq, appRes) {
       else {
         return getAttributeValue('content', val);
       }
-
-
     };
 
 
@@ -66,7 +83,7 @@ app.post("/proxy", function (appReq, appRes) {
     };
 
     var getEndElement = function(start, html) {
-      return html.toLowerCase().indexOf('/>', start);
+      return html.toLowerCase().indexOf('>', start);
     };
 
     var getElement = function(tag, html) {

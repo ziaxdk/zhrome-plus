@@ -4,12 +4,22 @@
     <link rel="stylesheet" href="css/foundation.css">
     <script src="angular-1.15.js"></script>
     <script src="MongoResource.js"></script>
+    <script src="lunr-0.33.js"></script>
     <script>
 
 
         var app = angular.module("TheApp", ['mongolabResourceHttp']);
+        var index;
 
-        app.constant('MONGOLAB_CONFIG', {API_KEY: '50f5584ae4b09b3cd11ec093', DB_NAME: 'ziaxdeveloperplugin'});
+        app.run(function(){
+            index = lunr(function () {
+                this.ref('id');
+                this.field('link');
+                this.field('description');
+             });
+        });
+
+        app.constant('MONGOLAB_CONFIG', {API_KEY: '', DB_NAME: 'ziaxdeveloperplugin'});
 
         app.service("Settings", function () {
             return {
@@ -30,7 +40,7 @@
                 link.tags = this.tags;
 
                 console.log("saving...", link);
-                //link.$save(function() { console.log("ok", arguments); }, function() {  console.log("err", arguments); });
+                link.$save(function() { console.log("ok", arguments); }, function() {  console.log("err", arguments); });
             };
 
             var _prom;
@@ -58,6 +68,15 @@
 
         app.controller("ListCtrl", function (Links, $http) {
             this.links = Links.all();
+            this.links.then(function(links){
+                angular.forEach(links, function(e){
+                    index.add({
+                        id: e._id.$oid,
+                        link: e.link,
+                        description: e.search.description
+                    });
+                });
+            });
         });
 
     </script>
