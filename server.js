@@ -1,8 +1,9 @@
 ﻿var express = require('express'),
-    http = require('follow-redirects').http
+    http = require('follow-redirects').http,
+    zhrome = require('./zhrome-module.js')
     ;
 
-
+console.log(zhrome.save());
 var app = express();
 var theServer = http.createServer(app);
 app.use(express.bodyParser());
